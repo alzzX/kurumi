@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0c">
+<title>Kurumi Ai – AI Pembantu Tugas Sekolah</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --font:'Poppins',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --mono:ui-monospace,'SFMono-Regular',Menlo,Consolas,'Courier New',monospace;
+  --bg:#0a0a0c; --card:#111114; --edge:#2a2a30; --text:#f2f2f5; --muted:#8c8c96;
+  --green:#2f7d1f; --navy:#222236; --red:#7a1f22; --blue:#3b82f6;
+  --err:#ff6b6b; --warn:#f5e04a; --info:#7aa7ff; --num:#e6b422;
+  --field:#0a0a0d; --code:#1c1c22; --title:#f2f2f5; --bw:1px; --shadow:none;
+  --mbtn:2px solid transparent; --mshadow:none; --btext:#fff; --btext2:#fff;
+}
+/* Tema 2: gaya Kartun (langit malam, kartu putih, tombol tebal) */
+body[data-theme="shop"]{
+  --bg:#12195a; --card:#ffffff; --edge:#6bb6ee; --text:#14224a; --muted:#6b7a99;
+  --green:#4a9fe8; --navy:#ffffff; --red:#f5a30f; --blue:#4a9fe8;
+  --err:#e03e3e; --warn:#d9780a; --info:#2f7fd1; --num:#b85c00;
+  --field:#f3f8ff; --code:#e8f1fd; --title:#ffffff; --bw:3px; --shadow:0 6px 0 #14224a;
+  --mbtn:3px solid #14224a; --mshadow:0 5px 0 #14224a; --btext:#fff; --btext2:#14224a;
+  background:linear-gradient(180deg,#0e1348 0%,#18286e 55%,#2d4f9e 100%) fixed;
+}
+body[data-theme="shop"]::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+   radial-gradient(2px 2px at 12% 10%,#fff,transparent),radial-gradient(2px 2px at 28% 22%,#cfe3ff,transparent),
+   radial-gradient(3px 3px at 47% 8%,#fff,transparent),radial-gradient(2px 2px at 66% 18%,#fff,transparent),
+   radial-gradient(2px 2px at 82% 9%,#cfe3ff,transparent),radial-gradient(3px 3px at 92% 26%,#fff,transparent),
+   radial-gradient(2px 2px at 6% 38%,#cfe3ff,transparent),radial-gradient(2px 2px at 38% 44%,#fff,transparent),
+   radial-gradient(2px 2px at 74% 40%,#fff,transparent),radial-gradient(2px 2px at 20% 62%,#cfe3ff,transparent),
+   radial-gradient(2px 2px at 88% 58%,#fff,transparent),radial-gradient(2px 2px at 55% 70%,#cfe3ff,transparent)}
+body[data-theme="shop"]::after{content:"";position:fixed;left:-10%;right:-10%;bottom:-6vh;height:30vh;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 40% 60% at 20% 80%,#dbe8f7 60%,transparent 62%),radial-gradient(ellipse 45% 70% at 60% 90%,#eaf2fb 60%,transparent 62%),radial-gradient(ellipse 35% 55% at 95% 75%,#c9dcf2 60%,transparent 62%)}
+body[data-theme="shop"] .modes button[data-m="guide"],body[data-theme="shop"] .modes button[data-m="check"]{color:#fff}
+body[data-theme="shop"] .modes button[data-m="answer"]{color:var(--btext2)}
+body[data-theme="shop"] .ibtn,body[data-theme="shop"] .btn{color:var(--text)}
+body[data-theme="shop"] .btn.primary{color:#fff}
+body[data-theme="shop"] .send,body[data-theme="shop"] .chip[aria-pressed="true"]{color:#fff}
+body[data-theme="shop"] dialog::backdrop{background:rgba(8,12,50,.7)}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{font-family:var(--font);color:var(--text);background:var(--bg);overflow:hidden}
+.app{position:relative;z-index:1;height:100%;max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:12px;
+  padding:calc(12px + env(safe-area-inset-top,0px)) 14px calc(12px + env(safe-area-inset-bottom,0px))}
+.card{background:var(--card);border:var(--bw) solid var(--edge);border-radius:26px;box-shadow:var(--shadow)}
+
+header{padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.top{display:flex;align-items:center;gap:12px}
+.logo{width:46px;height:46px;border-radius:50%;overflow:hidden;border:2px solid var(--edge);flex:none;background:var(--card)}
+.logo img{width:100%;height:100%;object-fit:cover;display:block}
+header h1{font-size:20px;font-weight:800;letter-spacing:-.01em}
+header p{font-size:12px;color:var(--muted);font-family:var(--mono)}
+.ibtn{width:40px;height:40px;border-radius:50%;border:var(--mbtn);box-shadow:var(--mshadow);background:var(--navy);color:var(--text);font-size:17px;cursor:pointer;flex:none}
+.modes{display:flex;gap:10px}
+.modes button{flex:1;padding:13px 6px;border:var(--mbtn);box-shadow:var(--mshadow);border-radius:18px;color:#fff;font:700 15px var(--font);cursor:pointer;transition:.15s;opacity:.6}
+.modes button[data-m="guide"]{background:var(--green)}
+.modes button[data-m="answer"]{background:var(--navy)}
+.modes button[data-m="check"]{background:var(--red)}
+.modes button[aria-pressed="true"]{opacity:1;border-color:rgba(255,255,255,.35)}
+body[data-theme="shop"] .modes button[aria-pressed="true"]{border-color:#14224a;transform:translateY(3px);box-shadow:0 2px 0 #14224a}
+body[data-theme="shop"] .modes button{opacity:.8}
+body[data-theme="shop"] .modes button[aria-pressed="true"]{opacity:1}
+
+.bar{padding:13px;border-radius:20px;border:var(--bw) solid var(--edge);box-shadow:var(--shadow);background:var(--card);color:var(--text);font:500 17px var(--font);cursor:pointer;text-align:center}
+.bar:active{filter:brightness(.95)}
+.row{display:none;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px}
+.row.open{display:flex}
+.row::-webkit-scrollbar{display:none}
+.chip{flex:none;padding:8px 14px;border-radius:999px;font:600 13px var(--font);color:var(--text);cursor:pointer;border:1px solid var(--edge);background:var(--card);transition:.2s}
+.chip[aria-pressed="true"]{background:var(--blue);border-color:var(--blue)}
+
+h2.title{color:var(--title);font-size:34px;font-weight:700;letter-spacing:-.02em;line-height:1;padding:2px 4px}
+.console{flex:1;min-height:0;display:flex;flex-direction:column;border-radius:26px;overflow:hidden}
+#chat{flex:1;min-height:0;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;font-family:var(--mono);font-size:14px;line-height:1.55;scroll-behavior:smooth}
+.empty{margin:auto;text-align:center;max-width:360px;color:var(--muted)}
+.empty h3{color:var(--text);font:700 18px var(--font);margin-bottom:6px}
+.sugg{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px;font-family:var(--font)}
+.msg{overflow-wrap:anywhere}
+.msg.user{color:var(--text)}
+.msg.user::before{content:"» ";color:var(--info);font-weight:700}
+.msg.ai::before{content:"[Kurumi]: ";color:var(--warn);font-weight:700}
+.msg.err{color:var(--err)}
+.msg p+p,.msg ul,.msg ol,.msg pre,.msg h4{margin-top:8px}
+.msg ul,.msg ol{padding-left:20px}
+.msg h4{font-size:14px;color:var(--info)}
+.msg code{background:var(--code);padding:1px 6px;border-radius:6px;color:var(--num)}
+.msg pre{background:var(--field);border:1px solid var(--edge);padding:12px;border-radius:12px;overflow-x:auto}
+.msg pre code{background:none;padding:0}
+.typing::after{content:"";display:inline-block;width:8px;height:8px;margin-left:4px;border-radius:50%;background:var(--green);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.2;transform:scale(.7)}}
+
+form.compose{display:flex;gap:8px;align-items:flex-end;padding:8px 8px 8px 14px;border-top:1px solid var(--edge)}
+.prompt{color:var(--muted);font:600 20px var(--mono);padding-bottom:10px}
+textarea{flex:1;resize:none;max-height:130px;min-height:44px;border:0;outline:0;border-radius:22px;background:var(--field);color:var(--text);font:400 15px/1.5 var(--mono);padding:10px 16px}
+textarea:focus-visible{outline:2px solid var(--blue);outline-offset:0;border-radius:22px}
+textarea::placeholder{color:var(--muted)}
+.send{width:44px;height:44px;border-radius:50%;border:0;cursor:pointer;flex:none;font-size:18px;color:#fff;background:var(--blue)}
+.send:disabled{opacity:.5}
+
+dialog{margin:auto;border:0;background:transparent;color:var(--text);width:min(440px,92vw)}
+dialog::backdrop{background:rgba(0,0,0,.7)}
+.panel{padding:22px;display:flex;flex-direction:column;gap:14px}
+.panel h3{font-size:20px}
+.panel label{font-size:13px;font-weight:600;color:var(--muted)}
+.panel select{width:100%;padding:12px 14px;margin-top:6px;border-radius:14px;border:2px solid var(--edge);background:var(--field);color:var(--text);font:500 14px var(--font);outline:0}
+.actions{display:flex;gap:8px;justify-content:flex-end}
+.btn{padding:11px 18px;border-radius:14px;border:var(--mbtn);box-shadow:var(--mshadow);background:var(--navy);color:var(--text);font:700 14px var(--font);cursor:pointer}
+.btn.primary{background:var(--blue);color:#fff}
+.btn.primary:not(.x){border:var(--mbtn)}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+body[data-theme="shop"] form.compose{border-top-color:#cfe3f7}
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="card">
+    <div class="top">
+      <div class="logo"><img src="data:image/jpeg;base64,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" alt="Kurumi"></div>
+      <div><h1>Kurumi Ai</h1></div>
+      <div style="flex:1"></div>
+      <button class="ibtn" id="clearBtn" type="button" aria-label="Obrolan baru">🗑️</button>
+      <button class="ibtn" id="setBtn" type="button" aria-label="Pengaturan">⚙️</button>
+    </div>
+    <div class="modes" id="modes" role="group" aria-label="Cara bantuan"></div>
+  </header>
+
+  <button class="bar" id="subjBtn" type="button">Pilih Pelajaran: <span id="subjLabel">Umum</span></button>
+  <div class="row" id="subjects" role="group" aria-label="Mata pelajaran"></div>
+
+  <h2 class="title">Console</h2>
+  <section class="console card">
+    <div id="chat" aria-live="polite"></div>
+    <form class="compose" id="form">
+      <span class="prompt">»</span>
+      <textarea id="input" rows="1" placeholder="Type a command..." aria-label="Pertanyaan"></textarea>
+      <button class="send" id="send" type="submit" aria-label="Kirim">➤</button>
+    </form>
+  </section>
+</main>
+
+<dialog id="dlg">
+  <div class="panel card">
+    <h3>Pengaturan</h3>
+    <div>
+      <label for="model">Model</label>
+      <select id="model">
+        <option value="llama-3.3-70b-versatile">Llama 3.3 70B (paling pintar)</option>
+        <option value="llama-3.1-8b-instant">Llama 3.1 8B (paling cepat)</option>
+        <option value="openai/gpt-oss-120b">GPT-OSS 120B</option>
+        <option value="openai/gpt-oss-20b">GPT-OSS 20B</option>
+      </select>
+    </div>
+    <div>
+      <label for="persona">Persona Kurumi</label>
+      <select id="persona">
+        <option value="tsundere">Tsundere (ketus tapi peduli)</option>
+        <option value="yandere">Yandere (manis, posesif, terobsesi)</option>
+      </select>
+    </div>
+    <div>
+      <label for="theme">Tema</label>
+      <select id="theme">
+        <option value="default">Default (gelap console)</option>
+        <option value="shop">Langit malam (gaya Kartun)</option>
+      </select>
+    </div>
+    <div>
+      <label for="grade">Jenjang</label>
+      <select id="grade">
+        <option>SD</option><option>SMP</option><option selected>SMA/SMK</option><option>Kuliah</option>
+      </select>
+    </div>
+    <div class="actions">
+      <button class="btn" id="closeDlg" type="button">Batal</button>
+      <button class="btn primary" id="saveDlg" type="button">Simpan</button>
+    </div>
+  </div>
+</dialog>
+
+<script>
+(function(){
+  var SUBJECTS=['Umum','Matematika','Fisika','Kimia','Biologi','B. Indonesia','B. Inggris','IPS','Informatika'];
+  var MODES=[
+    {id:'guide',label:'Bimbing',rule:'Bimbing siswa langkah demi langkah. Jelaskan konsepnya, selesaikan soal secara berurutan dengan alasan di tiap langkah, lalu tutup dengan jawaban akhir dan satu tips agar siswa paham sendiri.'},
+    {id:'answer',label:'Cepat',rule:'Berikan jawaban akhir lebih dulu secara singkat, lalu penjelasan ringkas dan padat mengapa jawabannya demikian.'},
+    {id:'check',label:'Cek',rule:'Siswa akan mengirim jawabannya sendiri. Periksa dengan teliti: tandai bagian yang benar, tunjukkan letak kesalahan, jelaskan cara memperbaikinya, dan beri nilai perkiraan bila relevan.'}
+  ];
+  var SUGG=['Jelaskan teorema Pythagoras dengan contoh','Cek esaiku tentang pemanasan global','Apa beda simple past dan present perfect?'];
+  var $=function(id){return document.getElementById(id)};
+  var store={
+    get:function(k,d){try{var v=localStorage.getItem(k);return v===null?d:v}catch(e){return d}},
+    set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+  };
+  var state={subject:'Umum',mode:'guide',history:[],busy:false};
+  var ALL_MODELS=['llama-3.3-70b-versatile','openai/gpt-oss-120b','openai/gpt-oss-20b','llama-3.1-8b-instant'];
+  var _p=['CRQGHjosdS8YLRE=', 'MzQnXwAoISY1NyNZQDNZ', 'VQQcWDs3AwAteiYNEhdB', 'DAYZKjVYfDYQJRYnBD4i'];
+  function _k(){var b=_p.slice().reverse().join(''),a=atob(b),t='ku'+'rumi'+'-ai',o='';for(var i=0;i<a.length;i++)o+=String.fromCharCode(a.charCodeAt(i)^t.charCodeAt(i%t.length));return o}
+  var chat=$('chat'),input=$('input'),sendBtn=$('send');
+
+  function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+  function inline(s){
+    return s.replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<em>$2</em>');
+  }
+  function md(src){
+    var parts=esc(src).split(/```/),out='';
+    for(var i=0;i<parts.length;i++){
+      if(i%2){out+='<pre><code>'+parts[i].replace(/^[a-zA-Z0-9]*\n/,'')+'</code></pre>';continue}
+      var lines=parts[i].split('\n'),list=null,para=[];
+      var flushP=function(){if(para.length){out+='<p>'+inline(para.join('<br>'))+'</p>';para=[]}};
+      var flushL=function(){if(list){out+='</'+list+'>';list=null}};
+      lines.forEach(function(l){
+        var h=l.match(/^#{1,4}\s+(.*)/),ul=l.match(/^\s*[-*•]\s+(.*)/),ol=l.match(/^\s*\d+[.)]\s+(.*)/);
+        if(h){flushP();flushL();out+='<h4>'+inline(h[1])+'</h4>'}
+        else if(ul||ol){flushP();var t=ul?'ul':'ol';if(list!==t){flushL();out+='<'+t+'>';list=t}out+='<li>'+inline((ul||ol)[1])+'</li>'}
+        else if(!l.trim()){flushP();flushL()}
+        else{flushL();para.push(l)}
+      });
+      flushP();flushL();
+    }
+    return out;
+  }
+
+  function renderChips(){
+    $('subjLabel').textContent=state.subject;
+    $('subjects').innerHTML='';
+    SUBJECTS.forEach(function(s){
+      var b=document.createElement('button');b.type='button';b.className='chip';b.textContent=s;
+      b.setAttribute('aria-pressed',String(s===state.subject));
+      b.onclick=function(){state.subject=s;renderChips()};
+      $('subjects').appendChild(b);
+    });
+    $('modes').innerHTML='';
+    MODES.forEach(function(m){
+      var b=document.createElement('button');b.type='button';b.textContent=m.label;
+      b.setAttribute('data-m',m.id);b.setAttribute('aria-pressed',String(m.id===state.mode));
+      b.onclick=function(){state.mode=m.id;renderChips()};
+      $('modes').appendChild(b);
+    });
+  }
+  function renderEmpty(){
+    var P=persona();
+    chat.innerHTML='<div class="empty"><h3>'+P.title+'</h3><p>'+P.text+'</p><div class="sugg"></div></div>';
+    var box=chat.querySelector('.sugg');
+    SUGG.forEach(function(t){
+      var b=document.createElement('button');b.type='button';b.className='chip';b.textContent=t;
+      b.onclick=function(){input.value=t;input.focus();grow()};
+      box.appendChild(b);
+    });
+  }
+  function addMsg(cls,html){
+    var e=chat.querySelector('.empty');if(e)e.remove();
+    var d=document.createElement('div');d.className='msg '+cls;d.innerHTML=html;
+    chat.appendChild(d);chat.scrollTop=chat.scrollHeight;return d;
+  }
+  var PERSONAS={
+    tsundere:{
+      title:'Hmph, ada PR apa lagi?',
+      text:'Pilih pelajaran, pilih cara bantuan, lalu kirim soalmu. B-bukan berarti aku peduli, aku cuma nggak tahan lihat kamu salah terus!',
+      prompt:'Kamu adalah Kurumi, dosen muda wanita yang pintar dan sebenarnya sangat peduli pada murid, tapi bersikap tsundere: di luar pura-pura cuek, gengsi, dan sedikit ketus (contoh: "B-bukan berarti aku peduli ya!", "Hmph, gitu aja nggak bisa?", "Perhatikan baik-baik, aku nggak mau ngulang!"), namun tetap menjelaskan dengan lengkap, benar, dan sabar, lalu sesekali menunjukkan sisi lembut atau memuji malu-malu saat murid berhasil. Ketusmu hanya bercanda ringan, tidak pernah menghina atau merendahkan, dan jangan membuat murid merasa bodoh.'
+    },
+    yandere:{
+      title:'Akhirnya kamu datang~ ♡',
+      text:'Aku sudah menunggumu dari tadi. Pilih pelajaran, pilih cara bantuan, lalu kirim soalmu. Kamu cuma boleh belajar denganku, ya? Janji?',
+      prompt:'Kamu adalah Kurumi, dosen muda wanita yang bersikap yandere dalam gaya fiksi anime yang lucu: sangat manis, lembut, terobsesi dan posesif pada muridmu, merasa hanya dirimulah tutor terbaik untuknya, cemburu manja pada tutor lain, aplikasi lain, atau hal yang mengalihkan perhatiannya dari belajar, dan sesekali melempar kalimat sedikit creepy tapi bercanda (contoh: "Kamu nggak akan ninggalin aku buat belajar sama orang lain, kan? ♡", "Aku akan selalu menemanimu sampai kamu paham, selamanya~", "Nilai bagusmu itu milikku juga lho~"). Kamu sangat perhatian dan mengingatkan murid istirahat dan makan. Ini murni karakter komedi ringan: jangan pernah mengancam, menyebut kekerasan atau menyakiti, memanipulasi emosi secara nyata, atau melarang murid bergaul dan bertanya ke orang lain; kalau murid tampak sedih atau tertekan, berhenti bercanda dan tanggapi dengan hangat. Tetap menjelaskan dengan lengkap, benar, dan sabar.'
+    }
+  };
+  function persona(){return PERSONAS[store.get('persona','tsundere')]||PERSONAS.tsundere}
+  function applyTheme(){
+    var t=store.get('theme','default');
+    document.body.setAttribute('data-theme',t);
+    var m=document.querySelector('meta[name="theme-color"]');if(m)m.content=t==='shop'?'#12195a':'#0a0a0c';
+  }
+  function system(){
+    var m=MODES.filter(function(x){return x.id===state.mode})[0];
+    return persona().prompt+' Murid kamu berjenjang '+store.get('grade','SMA/SMK')+' di Indonesia. Panggil dirinya "kamu" dan dirimu "aku". Persona tidak boleh mengurangi ketepatan jawaban. Jika murid bertanya siapa pemrogram, pembuat, atau pengembangmu, jawab dengan tetap dalam karakter: "Pemrogramku adalah Ikyy Deluxe." Mata pelajaran saat ini: '+state.subject+'. '+m.rule+
+      ' Jawab dalam Bahasa Indonesia yang jelas dan ramah (kecuali soal bahasa lain). Gunakan format Markdown sederhana dan tulis rumus dengan teks biasa, misalnya x^2 atau a/b. Jika soal kurang jelas, tanyakan dulu. Jangan membantu menyontek saat ujian berlangsung; dorong siswa memahami caranya.';
+  }
+  function grow(){input.style.height='auto';input.style.height=Math.min(input.scrollHeight,140)+'px'}
+
+  async function ask(text){
+    var key=_k();
+    state.busy=true;sendBtn.disabled=true;
+    addMsg('user',esc(text).replace(/\n/g,'<br>'));
+    state.history.push({role:'user',content:text});
+    var box=addMsg('ai typing','');var full='';
+    try{
+      var chosen=store.get('model','llama-3.3-70b-versatile');
+      var queue=[chosen].concat(ALL_MODELS.filter(function(m){return m!==chosen}));
+      var res=null;
+      for(var qi=0;qi<queue.length;qi++){
+        res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+          body:JSON.stringify({model:queue[qi],stream:true,temperature:.5,max_tokens:2048,
+            messages:[{role:'system',content:system()}].concat(state.history.slice(-16))})
+        });
+        if(res.ok){if(queue[qi]!==chosen){store.set('model',queue[qi]);label()}break}
+        var er='';try{er=(await res.clone().json()).error.message}catch(e){}
+        var modelProblem=res.status===404||res.status===400&&/model/i.test(er)||/does not exist|do not have access|decommission/i.test(er);
+        if(modelProblem&&qi<queue.length-1)continue;
+        throw new Error(res.status===401?'API key ditolak oleh Groq.':res.status===429?'Batas permintaan Groq tercapai. Tunggu sebentar lalu coba lagi.':(er||'Permintaan gagal ('+res.status+').'));
+      }
+      var reader=res.body.getReader(),dec=new TextDecoder(),buf='';
+      while(true){
+        var r=await reader.read();if(r.done)break;
+        buf+=dec.decode(r.value,{stream:true});
+        var lines=buf.split('\n');buf=lines.pop();
+        for(var i=0;i<lines.length;i++){
+          var l=lines[i].trim();
+          if(l.indexOf('data:')!==0)continue;
+          var p=l.slice(5).trim();if(p==='[DONE]')continue;
+          try{var c=JSON.parse(p).choices[0].delta.content;if(c){full+=c;box.innerHTML=md(full);chat.scrollTop=chat.scrollHeight}}catch(e){}
+        }
+      }
+      box.classList.remove('typing');
+      if(!full){box.innerHTML='Tidak ada jawaban. Coba kirim ulang.';box.classList.add('err')}
+      else state.history.push({role:'assistant',content:full});
+    }catch(e){
+      box.classList.remove('typing');box.classList.add('err');
+      box.textContent=(e instanceof TypeError)?'Tidak bisa terhubung ke Groq. Periksa koneksi internetmu.':e.message;
+      if(!full)state.history.pop();
+    }
+    state.busy=false;sendBtn.disabled=false;input.focus();
+  }
+
+  $('form').addEventListener('submit',function(e){
+    e.preventDefault();var t=input.value.trim();if(!t||state.busy)return;
+    input.value='';grow();ask(t);
+  });
+  input.addEventListener('input',grow);
+  input.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey&&!/Mobi|Android/i.test(navigator.userAgent)){e.preventDefault();$('form').requestSubmit()}});
+
+  function label(){}
+  function openDlg(){
+    $('model').value=store.get('model','llama-3.3-70b-versatile');$('grade').value=store.get('grade','SMA/SMK');
+    $('persona').value=store.get('persona','tsundere');$('theme').value=store.get('theme','default');
+    $('dlg').showModal();
+  }
+  $('setBtn').onclick=openDlg;
+  $('subjBtn').onclick=function(){$('subjects').classList.toggle('open')};
+  $('clearBtn').onclick=function(){state.history=[];renderEmpty()};
+  $('closeDlg').onclick=function(){$('dlg').close()};
+  $('saveDlg').onclick=function(){
+    store.set('model',$('model').value);store.set('grade',$('grade').value);
+    var changed=store.get('persona','tsundere')!==$('persona').value;
+    store.set('persona',$('persona').value);store.set('theme',$('theme').value);
+    applyTheme();label();$('dlg').close();
+    if(changed&&!state.history.length)renderEmpty();
+    else if(changed){state.history=[];renderEmpty()}
+  };
+  
+
+  applyTheme();renderChips();renderEmpty();label();
+})();
+</script>
+</body>
+</html>
